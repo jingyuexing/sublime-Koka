@@ -1,0 +1,438 @@
+%YAML 1.2
+---
+# http://www.sublimetext.com/docs/3/syntax.html
+first_line_match: '\s*(module)\s*((interface)?)\s*(([a-z][\w\-]*/)*[a-z][\w\-]*)'
+name: koka
+file_extensions:
+  - kk
+  - kki
+  - core
+scope: source.koka
+contexts:
+  main:
+    - include: line_comment
+    - include: line_directive
+    - include: block_comment
+    - include: string
+    - include: rawstring
+    - include: rawstring1
+    - include: rawstring2
+    - include: character
+    - include: characteresc
+    - include: type_app
+    - include: top_type
+    - include: top_type_type
+    - include: top_type_alias
+    - include: top_type_struct_args
+    - include: top_type_struct
+    - include: top_type_quantifier
+    - include: decl_function
+    - include: decl_external_import
+    - include: decl_external
+    - include: decl_val
+    - include: decl_var
+    - include: decl_param
+    - include: module_id
+    - include: import_id
+    - include: import_id2
+    - include: branch
+    - include: dot
+    - include: reservedid
+    - include: reservedcontrol
+    - include: reservedop
+    - include: libraryid
+    - include: externid
+    - include: qconstructor
+    - include: qoperator
+    - include: qidentifier
+    - include: identifier
+    - include: constructor
+    - include: special
+    - include: minus
+    - include: operator
+    - include: wildcard
+    - include: number
+    - include: inv_character
+    - include: whitespace
+  block_comment:
+    - match: /\*
+      captures:
+        0: punctuation.definition.comment koka.comment.block
+      push:
+        - meta_scope: comment.block koka.comment.block
+        - match: \*/
+          captures:
+            0: punctuation.definition.comment koka.comment.block
+          pop: true
+        - include: block_comment
+        - match: ^```+.*$
+          push:
+            - meta_scope: koka.comment.doc.pre.block
+            - match: ^```+\s*$
+              pop: true
+        - match: '`(:[^\`\n]+)`'
+          scope: koka.comment.doc.pre.type
+        - match: '`(module [^\`\n]+)`'
+          scope: koka.comment.doc.pre.module
+        - match: '`+([^\`\n]*)`+'
+          scope: koka.comment.doc.pre.source
+        - match: '\*([^\*]*)\*'
+          scope: koka.comment.doc.emph
+        - match: '_([^_]*)_'
+          scope: markup.italic koka.comment.doc.emph
+  branch:
+    - match: '(finally|initially)\s*(?=->|[\{\(])'
+      scope: keyword.other koka.id.library.$1
+  character:
+    - match: '''[^\''\\$]'''
+      scope: string.quoted.single koka.char
+  characteresc:
+    - match: '('')(\\([abfnrtv0\\"''\?]|x[\da-fA-F]{2}|u[\da-fA-F]{4}|U[\da-fA-F]{6}))('')'
+      captures:
+        1: string.quoted.single koka.char
+        2: string.quoted.single constant.character.escape koka.char.escape
+        3: string.quoted.single constant.character.escape koka.char.escape
+        4: string.quoted.single koka.char
+  constructor:
+    - match: '[A-Z][\w\-]*[\''\?]*|\(,+\)'
+      scope: entity.name.tag.css.constant.other.constructor koka.conid
+  decl_external:
+    - match: '((?:inline|noinline)?\s*extern)\s+([\.a-z][\w\-]*[\''\?]*(?:\.\d+)?|\([$%&\*\+@!/\\\^~=\.:\-\?\|<>]+(?:\.\d+)?\)|\[\]|\"[^\s\"]+\")?'
+      captures:
+        1: keyword.declaration.function koka.keyword.extern
+        2: entity.name.function koka.id.decl.function
+  decl_external_import:
+    - match: (extern\s+import)
+      scope: keyword.declaration.import koka.keyword.extern
+  decl_function:
+    - match: '((?:inline|noinline)?\s*(?:fun|fn|ctl|ret))\s+([\.a-z][\w\-]*[\''\?]*(?:\.\d+)?|\([$%&\*\+@!/\\\^~=\.:\-\?\|<>]+(?:\.\d+)?\)|\[\]|\"[^\s\"]+\")'
+      captures:
+        1: keyword.declaration.function koka.keyword.fun
+        2: entity.name.function koka.id.decl.function
+  decl_param:
+    - match: '([a-z][\w\-]*[\''\?]*)\s*(?=:)'
+      scope: entity.name koka.id.param
+  decl_val:
+    - match: '((?:inline|noinline)?\s*val)\s+([\.a-z][\w\-]*[\''\?]*(?:\.\d+)?|\([$%&\*\+@!/\\\^~=\.:\-\?\|<>]+(?:\.\d+)?\))?'
+      captures:
+        1: keyword.declaration  koka.keyword.val
+        2: entity.name koka.id.decl.val
+  decl_var:
+    - match: '(var)\s+([a-z][\w\-]*[\''\?]*|\([$%&\*\+@!/\\\^~=\.:\-\?\|<>]+\))'
+      captures:
+        1: keyword.declaration koka.keyword.var
+        2: entity.name koka.id.decl.var
+  dot:
+    - match: \.
+      scope: source.dot koka.special.dot
+  externid:
+    - match: '(?:c|cs|js|inline)\s+(?:inline\s+)?(?:(?:file|header-file|header-end-file)\s+)?(?=[\"\{]|r#*")'
+      scope: keyword.control koka.id.extern.$1
+  fun_parameters:
+    - include: param_identifier
+    - match: '[,]'
+      scope: punctuation.separator koka.special
+    - include: top_type
+  identifier:
+    - match: '[a-z][\w\-]*[\''\?]*(?:\.\d+)?'
+      scope: source koka.id
+  import_id:
+    - match: '(import)(\s+(([a-z][\w\-]*/)*[a-z][\w\-]*)(\s+(=)(\s+(([a-z][\w\-]*/)*[a-z][\w\-]*))?))'
+      captures:
+        1: keyword koka.keyword.import
+        3: variable.other.member.definition.module koka.moduleid
+        6: keyword koka.keyword.op
+        8: variable.other.member.definition.module koka.moduleid
+  import_id2:
+    - match: '(import)(\s+(([a-z][\w\-]*/)*[a-z][\w\-]*))'
+      captures:
+        1: keyword koka.keyword.import
+        3: variable.other.member.definition.module koka.moduleid
+  inv_character:
+    - match: '''([^''\\\n]|\\(.|x..|u....|U......))''|''$|''''?'
+      scope: invalid.string.quoted.single koka.char.invalid
+  libraryid:
+    - match: '(resume|resume-shallow|rcontext)(?![\w\-?''])'
+      scope: keyword.control koka.id.library.$1
+  libraryop:
+    - match: '(!)(?![$%&\*\+@!/\\\^~=\.:\-\?\|<>])'
+      scope: keyword.control koka.op.library
+  line_comment:
+    - match: //
+      captures:
+        0: punctuation.definition.comment  koka.comment.line
+      push:
+        - meta_scope: comment.line.double-slash koka.comment.line
+        - match: $
+          pop: true
+        - match: '`(:[^\`\n]+)`'
+          captures:
+            1: koka.comment.doc.pre.type
+        - match: '`(module [^\`\n]+)`'
+          captures:
+            1: koka.comment.doc.pre.module
+        - match: '`+([^\`\n]*)`+'
+          captures:
+            1: koka.comment.doc.pre.source
+        - match: '\*([^\*]*)\*'
+          captures:
+            1: koka.comment.doc.emph
+        - match: '_([^_]*)_'
+          captures:
+            1: markup.italic koka.comment.doc.emph
+  line_directive:
+    - match: ^\s*#.*$
+      scope: meta.preprocessor koka.preprocessor
+  minus:
+    - match: '-(?![$%&\*\+@!/\\\^~=\.:\-\?\|<>])'
+      scope: source.operator.minus koka.op.minus
+  module_id:
+    - match: '(module)\s*((interface)?)\s*(([a-z][\w\-]*/)*[a-z][\w\-]*)'
+      captures:
+        1: keyword.other koka.keyword.module
+        3: keyword.other koka.keyword.interface
+        4: variable.other.member.definition.module koka.moduleid
+  number:
+    - match: '-?(?:0[xX][\da-fA-F]+(?:_[\da-fA-F]+)*(\.[\da-fA-F]+(?:_[\da-fA-F]+)*)?([pP][\-+]?\d+)?|(?:0|[1-9]\d*)(?:_\d+)*(\.\d+(?:_\d+)*([eE][\-+]?\d+)?)?)'
+      scope: constant.numeric koka.number
+  operator:
+    - match: '[$%&\*\+@!/\\\^~=\.:\-\?\|<>]+'
+      scope: source.operator koka.op
+  param_identifier:
+    - match: '([^]\s+)?([a-z][\w\-]*[\''\?]*)\s*(?=[:,\)])'
+      captures:
+        1: entity.name.function koka.id.param
+        2: koka.keyword.borrow
+  qconstructor:
+    - match: '((?:[a-z][\w\-]*/)+)([A-Z][\w\-]*[\''\?]*)'
+      captures:
+        1: variable.other.member.definition.module koka.moduleid
+        2: entity.name.tag.css.constant.other.constructor koka.conid
+  qidentifier:
+    - match: '((?:[a-z][\w\-]*/)+)([\.a-z][\w\-]*[\''\?]*(?:\.\d+)?)'
+      captures:
+        1: variable.other.member.definition.module koka.moduleid
+        2: source koka.id
+  qoperator:
+    - match: '((?:[a-z][\w\-]*/)+)(\([^\n\r\)]+(?:\.\d+)?\))'
+      captures:
+        1: variable.other.member.definition.module koka.moduleid
+        2: source.operator koka.op
+  rawstring:
+    - match: r"
+      captures:
+        0: punctuation.definition.string koka.string
+      push:
+        - meta_scope: string.quoted.double koka.string.raw
+        - match: '"'
+          captures:
+            0: punctuation.definition.string koka.string
+          pop: true
+        - match: '[^"]+'
+          scope: string.quoted.double koka.string.raw
+        - match: .
+          scope: invalid.string.quoted.double koka.string.raw
+  rawstring1:
+    - match: r#"
+      captures:
+        0: punctuation.definition.string koka.string
+      push:
+        - meta_scope: string.quoted.double koka.string.raw
+        - match: '"#'
+          captures:
+            0: punctuation.definition.string koka.string
+          pop: true
+        - match: '[^"]+'
+          scope: string.quoted.double koka.string.raw
+        - match: '"(?!#)'
+          scope: string.quoted.double koka.string.raw
+        - match: .
+          scope: invalid.string.quoted.double koka.string.raw
+  rawstring2:
+    - match: r##"
+      captures:
+        0: punctuation.definition.string koka.string
+      push:
+        - meta_scope: string.quoted.double koka.string.raw
+        - match: '"##'
+          captures:
+            0: punctuation.definition.string koka.string
+          pop: true
+        - match: '[^"]+'
+          scope: string.quoted.double koka.string.raw
+        - match: '"(?!##)'
+          scope: string.quoted.double koka.string.raw
+        - match: .
+          scope: invalid.string.quoted.double koka.string.raw
+  reservedcontrol:
+    - match: '(if|then|else|elif|match|return)(?![\w\-?''])'
+      scope: keyword.control koka.keyword.control.$1
+  reservedid:
+    - match: '(return(?=(?:\(|\s+\(?)\w[\w\-]*\s*(?:\)\s*(?:[^;])))|infix|infixr|infixl|type|co|rec|struct|alias|forall|exists|some|extern|fun(?:\s+raw)?|fn|val|var|con|with(?:\s+override)?|module|import|as|in|pub|abstract|effect|named|raw|final|ctl|break|context|mask(?:\s+behind)?|handle|handler)(?![\w\-?''])'
+      scope: keyword.other koka.keyword
+  reservedop:
+    - match: '(=|=>|\->|<\-|\||\.|:|:=)(?![$%&\*\+@!/\\\^~=\.:\-\?\|<>])'
+      scope: keyword koka.keyword.op
+  special:
+    - match: '[{}\(\)\[\];,]'
+      scope: punctuation.separator koka.special
+  string:
+    - match: (")
+      scope: punctuation.definition.string.begin.koka koka.string
+      push:
+        - meta_scope: string.quoted.double koka.string
+        - match: ("|$)
+          scope: punctuation.definition.string.end.koka koka.string
+          pop: true
+        - match: '([^"\\]|\\.)+$'
+          scope: invalid.string.quoted.double koka.string.invalid
+        - match: '[^"\\]+'
+          scope: string.quoted.double.regular koka.string
+        - match: '\\([abfnrtvz0\\"''\?]|x[\da-fA-F]{2}|u[\da-fA-F]{4}|U[\da-fA-F]{6})'
+          scope: string.quoted.double constant.character.escape koka.string.escape
+        - match: .
+          scope: invalid.string.quoted.double koka.string
+  top_type:
+    - match: '(:(?![$%&\*\+@!\\\^~=\.:\-\|<>]))|(where|iff|when)(?![\w\-])'
+      captures:
+        1: constant.numeric.type support.type koka.type
+        2: keyword koka.keyword.$2
+      push:
+        - match: '(?=[,\)\{\}\[\]=;"`A-Z]|  |(infix|infixr|infixl|inline|noinline|value|reference|open|extend|rec|co|type|linear|effect|context|ambient|alias|extern|fn|fun|function|val|raw|final|ctl|var|con|if|then|else|elif|match|inject|mask|named|handle|handler|return|module|import|as|pub|abstract)(?![\w\-?'']))'
+          captures:
+            0: invalid.keyword koka.invalid
+          pop: true
+        - include: type_content_top
+  top_type_alias:
+    - match: '(alias)\s+([a-z][\w\-]+)'
+      captures:
+        1: keyword.declaration koka.keyword
+        2: constant.numeric.type support.type koka.type.typecon
+      push:
+        - match: '(?=[,\)\{\}\[\];"`A-Z]|(infix|infixr|infixl|inline|noinline|type|co|rec|linear|alias|effect|context|ambient|extern|fn|fun|function|val|var|con|if|then|else|elif|match|inject|mask|named|handle|handler|return|module|import|as|pub|abstract)(?![\w\-?'']))'
+          captures:
+            0: invalid.keyword koka.keyword.invalid
+          pop: true
+        - match: '='
+          scope: keyword.other koka.keyword.op
+        - include: type_content_top
+  top_type_quantifier:
+    - match: (exists|forall|some)(\s*)(<)
+      captures:
+        1: keyword koka.keyword
+        3: constant.numeric.type support.type koka.type.special
+      push:
+        - match: '(>)|(?=[\)\{\}\[\]=;"`]|(infix|infixr|infixl|inline|noinline|type|co|rec|effect|context|ambient|alias|extern|fn|fun|function|val|var|con|if|then|else|elif|match|inject|mask|named|handle|handler|return|module|import|as|pub|abstract)(?![\w\-?'']))'
+          captures:
+            1: constant.numeric.type support.type koka.type.special
+            2: invalid.keyword koka.keyword.invalid
+          pop: true
+        - include: type_content
+  top_type_struct:
+    - match: '(struct)\s+([a-z][\w\-]*|\(,*\))'
+      captures:
+        1: keyword.declaration koka.keyword.struct
+        2: constant.numeric.type support.type koka.type.typecon
+  top_type_struct_args:
+    - match: '(struct)\s+([a-z][\w\-]*|\(,*\))\s*(<)'
+      captures:
+        1: keyword.declaration koka.keyword.struct
+        2: constant.numeric.type support.type koka.type.typecon
+        3: constant.numeric.type support.type koka.type.special
+      push:
+        - match: '(>)|(?=[\)\{\}\[\]=;"`]|(infix|infixr|infixl|inline|noinline|type|co|rec|effect|context|ambient|alias|extern|fn|fun|function|val|var|con|if|then|else|elif|match|inject|mask|named|handle|handler|return|module|import|as|pub|abstract)(?![\w\-?'']))'
+          captures:
+            1: constant.numeric.type support.type koka.type.special
+            2: invalid.keyword koka.keyword.invalid
+          pop: true
+        - include: type_content
+  top_type_type:
+    - match: '((?:(?:value|reference|open|extend|rec|co)?\s*type)|(?:named\s+)?(?:scoped\s+)?(?:linear\s+)?(?:rec\s+)?(?:effect|context|ambient))\s+(?!fn|fun|val|raw|final|ctl|ret)([a-z][\w\-]+|<>|<\|>|\(,*\))'
+      captures:
+        1: keyword.declaration.type koka.keyword
+        2: constant.numeric.type support.type koka.type.typecon
+      push:
+        - match: '(?=[\)\{\}\[\]=;"`A-Z]|  [\r\n]|(infix|infixr|infixl|inline|noinline|type|co|rec|effect|context|ambient|alias|extern|fn|fun|function|val|var|raw|final|ctl|con|if|then|else|elif|match|inject|mask|named|handle|handler|return|module|import|as|pub|abstract|value|reference|open|extend|inline|noinline)(?![\w\-?'']))'
+          captures:
+            0: punctuation.separator koka.special
+          pop: true
+        - include: type_content_top
+  type_app:
+    - match: '<(?![$%&\*\+@!/\\\^~=\.:\-\?\|\s\d])'
+      captures:
+        0: constant.numeric.type support.type koka.type.special
+      push:
+        - meta_scope: constant.numeric.type support.type koka.type.special
+        - match: '>|\n|  '
+          captures:
+            0: constant.numeric.type support.type koka.type.special
+          pop: true
+        - include: type_content
+  type_content:
+    - include: type_parameter
+    - include: type_content_top
+  type_content_top:
+    - match: '(forall|exists|some|with|in|iff|when|is|if)(?![\w\-])'
+      scope: keyword.other koka.keyword.$1
+    - match: '(\->|::?|\.)(?![$%&\*\+@!\\\^~=\.:\-\?\|<>])'
+      scope: constant.numeric.type support.type koka.type.special
+    - include: type_qidentifier
+    - include: type_variable
+    - include: type_identifier
+    - include: type_kind
+    - match: \(
+      captures:
+        0: constant.numeric.type support.type koka.type.special
+      push:
+        - meta_scope: constant.numeric.type support.type koka.type.parens
+        - match: \)
+          captures:
+            0: constant.numeric.type support.type koka.type.special
+          pop: true
+        - include: type_content
+    - match: '<(?![$%&\*\+@!/\\\^~=\.:\-\?\|])'
+      captures:
+        0: constant.numeric.type support.type koka.type.special
+      push:
+        - meta_scope: constant.numeric.type support.type koka.type.special
+        - match: '>|\n|  '
+          captures:
+            0: constant.numeric.type support.type koka.type.special
+          pop: true
+        - include: type_content
+    - match: '\['
+      captures:
+        0: constant.numeric.type support.type koka.type.special
+      push:
+        - meta_scope: constant.numeric.type support.type koka.type.special
+        - match: '\]'
+          captures:
+            0: constant.numeric.type support.type koka.type.special
+          pop: true
+        - include: type_content
+    - include: line_comment
+    - include: block_comment
+    - match: '[;,]|:'
+      scope: constant.numeric.type support.type koka.type.special
+  type_identifier:
+    - match: '[a-z][\w\-]*[\''\?]*'
+      scope: constant.numeric.type support.type koka.type.typecon
+  type_kind:
+    - match: '[A-Z](?![\w\-])'
+      scope: constant.numeric.type support.type koka.type.kind
+  type_parameter:
+    - match: '([a-zA-Z][\w\-]*[\''\?]*)\s*:(?!:)'
+      captures:
+        1: source.typeparam koka.type.typeparam
+  type_qidentifier:
+    - match: '([a-z][\w\-]*[\''\?]*/)+'
+      scope: variable.other.member.definition.module koka.moduleid
+  type_variable:
+    - match: '([a-z][0-9]*|_[\w\-]*[\''\?]*|self)(?!\w)'
+      scope: markup.italic constant.numeric.type support.type koka.type.typevar
+  whitespace:
+    - match: '[ \t]+'
+      scope: source.koka koka.white
+  wildcard:
+    - match: '_[\w\-]*[\''\?]*'
+      scope: source.wildcard.koka koka.id.wildcard
